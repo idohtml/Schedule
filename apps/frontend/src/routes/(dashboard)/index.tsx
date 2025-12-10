@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { createFileRoute, useRouteContext } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { ScheduleList } from "@/components/dashboard/schedule-list";
 import { EarningsWidget } from "@/components/dashboard/earnings-widget";
 import { EarningsWidgetSkeleton } from "@/components/dashboard/earnings-widget-skeleton";
@@ -8,13 +8,14 @@ import { HoursWidget } from "@/components/dashboard/hours-widget";
 import { HoursWidgetSkeleton } from "@/components/dashboard/hours-widget-skeleton";
 import { ProjectHoursWidget } from "@/components/dashboard/project-hours-widget";
 import { ProjectHoursWidgetSkeleton } from "@/components/dashboard/project-hours-widget-skeleton";
+import { useRefreshKey } from "./route";
 
 export const Route = createFileRoute("/(dashboard)/")({
   component: DashboardHome,
 });
 
 export function DashboardHome() {
-  const { refreshKey } = useRouteContext({ from: "/(dashboard)" });
+  const { refreshKey } = useRefreshKey();
 
   return (
     <>
@@ -47,4 +48,3 @@ export function DashboardHome() {
     </>
   );
 }
-
