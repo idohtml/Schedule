@@ -3,6 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useSession } from "../lib/auth-client";
 import { RefreshCw } from "lucide-react";
 import { AppSidebar } from "@/components/app-sidebar";
+import { ModeToggle } from "@/components/mode-toggle";
 import { ScheduleList } from "@/components/dashboard/schedule-list";
 import { EarningsWidget } from "@/components/dashboard/earnings-widget";
 import { EarningsWidgetSkeleton } from "@/components/dashboard/earnings-widget-skeleton";
@@ -89,7 +90,7 @@ function App() {
               </BreadcrumbList>
             </Breadcrumb>
           </div>
-          <div className="px-3">
+          <div className="flex items-center gap-2 px-3">
             <Button
               variant="outline"
               size="icon"
@@ -98,6 +99,7 @@ function App() {
             >
               <RefreshCw className="h-4 w-4" />
             </Button>
+            <ModeToggle />
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4">
