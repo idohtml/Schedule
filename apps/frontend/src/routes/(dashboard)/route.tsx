@@ -1,4 +1,10 @@
-import { createFileRoute, Outlet, useNavigate, Link, useMatches } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Outlet,
+  useNavigate,
+  Link,
+  useMatches,
+} from "@tanstack/react-router";
 import { useSession } from "@/lib/auth-client";
 import { RefreshCw } from "lucide-react";
 import { AppSidebar } from "@/components/app-sidebar";
@@ -18,15 +24,16 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, createContext, useContext } from "react";
+
+const RefreshKeyContext = createContext<{ refreshKey: number }>({
+  refreshKey: 0,
+});
+
+export const useRefreshKey = () => useContext(RefreshKeyContext);
 
 export const Route = createFileRoute("/(dashboard)")({
   component: DashboardLayout,
-  beforeLoad: ({ context }) => {
-    return {
-      refreshKey: 0,
-    };
-  },
 });
 
 function DashboardLayout() {
@@ -110,10 +117,11 @@ function DashboardLayout() {
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4">
-          <Outlet context={{ refreshKey } as { refreshKey: number }} />
+          <RefreshKeyContext.Provider value={{ refreshKey }}>
+            <Outlet />
+          </RefreshKeyContext.Provider>
         </div>
       </SidebarInset>
     </SidebarProvider>
   );
 }
-
