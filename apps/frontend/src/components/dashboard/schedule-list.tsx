@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { formatDate, formatTime } from "@/lib/utils";
 import type { ScheduleEntry } from "@/types";
 import {
@@ -22,6 +22,17 @@ import {
 } from "@/components/ui/drawer";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+
+const ITEMS_PER_PAGE = 15;
 
 export function ScheduleList() {
   const [schedules, setSchedules] = useState<ScheduleEntry[]>([]);
@@ -29,6 +40,7 @@ export function ScheduleList() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingEntry, setEditingEntry] = useState<ScheduleEntry | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split("T")[0],
     startTime: "09:00",
@@ -129,6 +141,8 @@ export function ScheduleList() {
 
       // Refresh schedules
       await fetchSchedules();
+      // Reset to first page after creating/updating
+      setCurrentPage(1);
     } catch (error) {
       console.error(
         `Error ${editingEntry ? "updating" : "creating"} schedule entry:`,
@@ -142,6 +156,67 @@ export function ScheduleList() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Calculate pagination
+  const totalPages = Math.ceil(schedules.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedSchedules = useMemo(() => {
+    return schedules.slice(startIndex, endIndex);
+  }, [schedules, startIndex, endIndex]);
+
+  // Reset to page 1 when schedules change
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1);
+    }
+  }, [schedules.length, totalPages, currentPage]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    // Scroll to top of table
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const getPageNumbers = () => {
+    const pages: (number | "ellipsis")[] = [];
+    const maxVisible = 5;
+
+    if (totalPages <= maxVisible) {
+      // Show all pages if total pages is less than max visible
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Always show first page
+      pages.push(1);
+
+      if (currentPage <= 3) {
+        // Near the start
+        for (let i = 2; i <= 4; i++) {
+          pages.push(i);
+        }
+        pages.push("ellipsis");
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        // Near the end
+        pages.push("ellipsis");
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        // In the middle
+        pages.push("ellipsis");
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pages.push(i);
+        }
+        pages.push("ellipsis");
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
   };
 
   return (
@@ -249,46 +324,105 @@ export function ScheduleList() {
             </DrawerContent>
           </Drawer>
         </div>
-        {isLoadingSchedules && schedules.length === 0 ? (
-          // Suspense fallback will show during initial load
-          null
-        ) : schedules.length === 0 ? (
+        {isLoadingSchedules &&
+        schedules.length === 0 ? null : schedules.length === 0 ? ( // Suspense fallback will show during initial load
           <div className="p-8 text-center text-muted-foreground">
             No schedule entries found. Add your first entry to get started!
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Start Time</TableHead>
-                <TableHead>End Time</TableHead>
-                <TableHead>Total Hours</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {schedules.map((entry) => (
-                <TableRow key={entry.id}>
-                  <TableCell className="font-medium">
-                    {formatDate(entry.date)}
-                  </TableCell>
-                  <TableCell>{formatTime(entry.startTime)}</TableCell>
-                  <TableCell>{formatTime(entry.endTime)}</TableCell>
-                  <TableCell>{entry.totalHours} hrs</TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(entry)}
-                    >
-                      Edit
-                    </Button>
-                  </TableCell>
+          <>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Start Time</TableHead>
+                  <TableHead>End Time</TableHead>
+                  <TableHead>Total Hours</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {paginatedSchedules.map((entry) => (
+                  <TableRow key={entry.id}>
+                    <TableCell className="font-medium">
+                      {formatDate(entry.date)}
+                    </TableCell>
+                    <TableCell>{formatTime(entry.startTime)}</TableCell>
+                    <TableCell>{formatTime(entry.endTime)}</TableCell>
+                    <TableCell>{entry.totalHours} hrs</TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEdit(entry)}
+                      >
+                        Edit
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            {totalPages > 1 && (
+              <div className="p-4 border-t">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (currentPage > 1) {
+                            handlePageChange(currentPage - 1);
+                          }
+                        }}
+                        className={
+                          currentPage === 1
+                            ? "pointer-events-none opacity-50"
+                            : "cursor-pointer"
+                        }
+                      />
+                    </PaginationItem>
+                    {getPageNumbers().map((page, index) => (
+                      <PaginationItem key={index}>
+                        {page === "ellipsis" ? (
+                          <PaginationEllipsis />
+                        ) : (
+                          <PaginationLink
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handlePageChange(page);
+                            }}
+                            isActive={currentPage === page}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        )}
+                      </PaginationItem>
+                    ))}
+                    <PaginationItem>
+                      <PaginationNext
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (currentPage < totalPages) {
+                            handlePageChange(currentPage + 1);
+                          }
+                        }}
+                        className={
+                          currentPage === totalPages
+                            ? "pointer-events-none opacity-50"
+                            : "cursor-pointer"
+                        }
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
