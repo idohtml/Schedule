@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useSession } from "../lib/auth-client";
 import { AppSidebar } from "@/components/app-sidebar";
+import { ScheduleList } from "@/components/dashboard/schedule-list";
+import { EarningsWidget } from "@/components/dashboard/earnings-widget";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -67,9 +69,7 @@ function App() {
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4">
           <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div className="bg-muted/50 aspect-video rounded-xl flex items-center justify-center">
-              <span className="text-muted-foreground">Widget 1</span>
-            </div>
+            <EarningsWidget />
             <div className="bg-muted/50 aspect-video rounded-xl flex items-center justify-center">
               <span className="text-muted-foreground">Widget 2</span>
             </div>
@@ -77,9 +77,7 @@ function App() {
               <span className="text-muted-foreground">Widget 3</span>
             </div>
           </div>
-          <div className="bg-muted/50 min-h-screen flex-1 rounded-xl md:min-h-min flex items-center justify-center">
-            <span className="text-muted-foreground">Main Content Area</span>
-          </div>
+          <ScheduleList />
         </div>
       </SidebarInset>
     </SidebarProvider>
