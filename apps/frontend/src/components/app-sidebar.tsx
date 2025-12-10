@@ -67,14 +67,14 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {/* Profile route - uncomment when route is created */}
-              {/* <SidebarMenuItem>
+              <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Link to="/profile">
                     <User />
                     <span>Profile</span>
                   </Link>
                 </SidebarMenuButton>
-              </SidebarMenuItem> */}
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
