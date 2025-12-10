@@ -20,6 +20,7 @@ export const auth = betterAuth({
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      callbackURL: process.env.FRONTEND_URL || "http://localhost:5173",
     },
   },
 });
