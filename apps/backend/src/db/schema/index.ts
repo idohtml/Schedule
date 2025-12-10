@@ -1,5 +1,13 @@
 import { relations } from "drizzle-orm";
-import { pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  timestamp,
+  boolean,
+  index,
+  time,
+  numeric,
+} from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -79,11 +87,6 @@ export const verification = pgTable(
   })
 );
 
-export const userRelations = relations(user, ({ many }) => ({
-  sessions: many(session),
-  accounts: many(account),
-}));
-
 export const sessionRelations = relations(session, ({ one }) => ({
   user: one(user, {
     fields: [session.userId],
@@ -96,4 +99,47 @@ export const accountRelations = relations(account, ({ one }) => ({
     fields: [account.userId],
     references: [user.id],
   }),
+}));
+
+export const schedule = pgTable(
+  "schedule",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    date: timestamp("date", { mode: "date" }).notNull(),
+    startTime: time("start_time").notNull(),
+    endTime: time("end_time").notNull(),
+    totalHours: numeric("total_hours", { precision: 5, scale: 2 }).notNull(),
+    notes: text("notes"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => ({
+    indexes: {
+      scheduleUserIdIdx: index("schedule_userId_idx").on(table.userId),
+      scheduleDateIdx: index("schedule_date_idx").on(table.date),
+      scheduleUserIdDateIdx: index("schedule_userId_date_idx").on(
+        table.userId,
+        table.date
+      ),
+    },
+  })
+);
+
+export const scheduleRelations = relations(schedule, ({ one }) => ({
+  user: one(user, {
+    fields: [schedule.userId],
+    references: [user.id],
+  }),
+}));
+
+export const userRelations = relations(user, ({ many }) => ({
+  sessions: many(session),
+  accounts: many(account),
+  schedules: many(schedule),
 }));
