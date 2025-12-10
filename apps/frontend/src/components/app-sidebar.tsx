@@ -1,4 +1,4 @@
-import { Calendar, Home, User } from "lucide-react";
+import { Calendar, Home, User, FolderKanban } from "lucide-react";
 
 import {
   Sidebar,
@@ -47,6 +47,14 @@ export function AppSidebar() {
                   <Link to="/">
                     <Home />
                     <span>Dashboard</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link to="/projects">
+                    <FolderKanban />
+                    <span>Projects</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

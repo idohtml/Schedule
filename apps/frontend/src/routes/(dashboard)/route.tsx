@@ -1,6 +1,8 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useSession } from "../../lib/auth-client";
+import { createFileRoute, Outlet, useNavigate, Link, useMatches } from "@tanstack/react-router";
+import { useSession } from "@/lib/auth-client";
+import { RefreshCw } from "lucide-react";
 import { AppSidebar } from "@/components/app-sidebar";
+import { ModeToggle } from "@/components/mode-toggle";
 import {
   SidebarInset,
   SidebarProvider,
@@ -15,22 +17,44 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
-import { useEffect } from "react";
-import ProfileForm from "./profile-form";
+import { Button } from "@/components/ui/button";
+import { useEffect, useState, useMemo } from "react";
 
-export const Route = createFileRoute("/profile")({
-  component: RouteComponent,
+export const Route = createFileRoute("/(dashboard)")({
+  component: DashboardLayout,
+  beforeLoad: ({ context }) => {
+    return {
+      refreshKey: 0,
+    };
+  },
 });
 
-function RouteComponent() {
+function DashboardLayout() {
   const { data: session, isPending } = useSession();
   const navigate = useNavigate();
+  const [refreshKey, setRefreshKey] = useState(0);
+  const matches = useMatches();
 
   useEffect(() => {
     if (!isPending && !session?.session) {
       navigate({ to: "/login", replace: true });
     }
   }, [session, isPending, navigate]);
+
+  const handleRefresh = () => {
+    setRefreshKey((prev) => prev + 1);
+  };
+
+  const currentPageName = useMemo(() => {
+    const lastMatch = matches[matches.length - 1];
+    const pathname = lastMatch?.pathname || "/";
+    if (pathname === "/") return "Home";
+    const segments = pathname.split("/").filter(Boolean);
+    const lastSegment = segments[segments.length - 1];
+    return lastSegment
+      ? lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1)
+      : "Dashboard";
+  }, [matches]);
 
   if (isPending) {
     return (
@@ -68,14 +92,25 @@ function RouteComponent() {
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem>
-                  <BreadcrumbPage>Profile</BreadcrumbPage>
+                  <BreadcrumbPage>{currentPageName}</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
           </div>
+          <div className="flex items-center gap-2 px-3">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleRefresh}
+              title="Refresh data"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+            <ModeToggle />
+          </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4">
-          <ProfileForm />
+          <Outlet context={{ refreshKey } as { refreshKey: number }} />
         </div>
       </SidebarInset>
     </SidebarProvider>

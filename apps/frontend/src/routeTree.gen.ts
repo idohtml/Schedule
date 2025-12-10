@@ -10,18 +10,15 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignUpRouteRouteImport } from './routes/sign-up/route'
-import { Route as ProfileRouteRouteImport } from './routes/profile/route'
 import { Route as LoginRouteRouteImport } from './routes/login/route'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as dashboardRouteRouteImport } from './routes/(dashboard)/route'
+import { Route as dashboardIndexRouteImport } from './routes/(dashboard)/index'
+import { Route as dashboardProjectsRouteRouteImport } from './routes/(dashboard)/projects/route'
+import { Route as dashboardProfileRouteRouteImport } from './routes/(dashboard)/profile/route'
 
 const SignUpRouteRoute = SignUpRouteRouteImport.update({
   id: '/sign-up',
   path: '/sign-up',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProfileRouteRoute = ProfileRouteRouteImport.update({
-  id: '/profile',
-  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRouteRoute = LoginRouteRouteImport.update({
@@ -29,43 +26,67 @@ const LoginRouteRoute = LoginRouteRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
+const dashboardRouteRoute = dashboardRouteRouteImport.update({
+  id: '/(dashboard)',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const dashboardIndexRoute = dashboardIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => dashboardRouteRoute,
+} as any)
+const dashboardProjectsRouteRoute = dashboardProjectsRouteRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => dashboardRouteRoute,
+} as any)
+const dashboardProfileRouteRoute = dashboardProfileRouteRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => dashboardRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
   '/login': typeof LoginRouteRoute
-  '/profile': typeof ProfileRouteRoute
   '/sign-up': typeof SignUpRouteRoute
+  '/profile': typeof dashboardProfileRouteRoute
+  '/projects': typeof dashboardProjectsRouteRoute
+  '/': typeof dashboardIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
   '/login': typeof LoginRouteRoute
-  '/profile': typeof ProfileRouteRoute
   '/sign-up': typeof SignUpRouteRoute
+  '/profile': typeof dashboardProfileRouteRoute
+  '/projects': typeof dashboardProjectsRouteRoute
+  '/': typeof dashboardIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/(dashboard)': typeof dashboardRouteRouteWithChildren
   '/login': typeof LoginRouteRoute
-  '/profile': typeof ProfileRouteRoute
   '/sign-up': typeof SignUpRouteRoute
+  '/(dashboard)/profile': typeof dashboardProfileRouteRoute
+  '/(dashboard)/projects': typeof dashboardProjectsRouteRoute
+  '/(dashboard)/': typeof dashboardIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/profile' | '/sign-up'
+  fullPaths: '/login' | '/sign-up' | '/profile' | '/projects' | '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/profile' | '/sign-up'
-  id: '__root__' | '/' | '/login' | '/profile' | '/sign-up'
+  to: '/login' | '/sign-up' | '/profile' | '/projects' | '/'
+  id:
+    | '__root__'
+    | '/(dashboard)'
+    | '/login'
+    | '/sign-up'
+    | '/(dashboard)/profile'
+    | '/(dashboard)/projects'
+    | '/(dashboard)/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  dashboardRouteRoute: typeof dashboardRouteRouteWithChildren
   LoginRouteRoute: typeof LoginRouteRoute
-  ProfileRouteRoute: typeof ProfileRouteRoute
   SignUpRouteRoute: typeof SignUpRouteRoute
 }
 
@@ -78,13 +99,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignUpRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/profile': {
-      id: '/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -92,20 +106,56 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
+    '/(dashboard)': {
+      id: '/(dashboard)'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof dashboardRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(dashboard)/': {
+      id: '/(dashboard)/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof dashboardIndexRouteImport
+      parentRoute: typeof dashboardRouteRoute
+    }
+    '/(dashboard)/projects': {
+      id: '/(dashboard)/projects'
+      path: '/projects'
+      fullPath: '/projects'
+      preLoaderRoute: typeof dashboardProjectsRouteRouteImport
+      parentRoute: typeof dashboardRouteRoute
+    }
+    '/(dashboard)/profile': {
+      id: '/(dashboard)/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof dashboardProfileRouteRouteImport
+      parentRoute: typeof dashboardRouteRoute
     }
   }
 }
 
+interface dashboardRouteRouteChildren {
+  dashboardProfileRouteRoute: typeof dashboardProfileRouteRoute
+  dashboardProjectsRouteRoute: typeof dashboardProjectsRouteRoute
+  dashboardIndexRoute: typeof dashboardIndexRoute
+}
+
+const dashboardRouteRouteChildren: dashboardRouteRouteChildren = {
+  dashboardProfileRouteRoute: dashboardProfileRouteRoute,
+  dashboardProjectsRouteRoute: dashboardProjectsRouteRoute,
+  dashboardIndexRoute: dashboardIndexRoute,
+}
+
+const dashboardRouteRouteWithChildren = dashboardRouteRoute._addFileChildren(
+  dashboardRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  dashboardRouteRoute: dashboardRouteRouteWithChildren,
   LoginRouteRoute: LoginRouteRoute,
-  ProfileRouteRoute: ProfileRouteRoute,
   SignUpRouteRoute: SignUpRouteRoute,
 }
 export const routeTree = rootRouteImport

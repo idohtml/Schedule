@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
-import { useSession } from "../../lib/auth-client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useSession } from "@/lib/auth-client";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -76,9 +82,7 @@ export default function ProfileForm() {
     } catch (error) {
       console.error("Error updating profile:", error);
       alert(
-        error instanceof Error
-          ? error.message
-          : "Failed to update profile"
+        error instanceof Error ? error.message : "Failed to update profile"
       );
     } finally {
       setIsLoading(false);
@@ -100,9 +104,7 @@ export default function ProfileForm() {
     <Card>
       <CardHeader>
         <CardTitle>Profile</CardTitle>
-        <CardDescription>
-          Update your profile information
-        </CardDescription>
+        <CardDescription>Update your profile information</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit}>
@@ -158,4 +160,3 @@ export default function ProfileForm() {
     </Card>
   );
 }
-
