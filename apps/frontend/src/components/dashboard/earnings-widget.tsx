@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 import type { ScheduleEntry } from "@/types";
+import { calculateTotalEarnings } from "@/lib/utils";
 import {
   Card,
   CardContent,
@@ -186,37 +187,9 @@ export function EarningsWidget() {
     }
   }, [schedules, viewType]);
 
-  // Calculate total earnings for the selected view period
+  // Calculate total earnings for the current period (today, this week, or this month)
   const totalEarnings = useMemo(() => {
-    const endDate = new Date();
-    const startDate = new Date();
-
-    // Calculate date range based on view type (same as fetchSchedules)
-    switch (viewType) {
-      case "daily":
-        startDate.setDate(startDate.getDate() - 6); // Last 7 days
-        break;
-      case "weekly":
-        startDate.setDate(startDate.getDate() - 27); // Last 4 weeks (28 days)
-        break;
-      case "monthly":
-        startDate.setMonth(startDate.getMonth() - 5); // Last 6 months
-        break;
-    }
-
-    startDate.setHours(0, 0, 0, 0);
-    endDate.setHours(23, 59, 59, 999);
-
-    // Filter schedules to match the selected view period
-    const filteredSchedules = schedules.filter((entry) => {
-      const entryDate = new Date(entry.date);
-      return entryDate >= startDate && entryDate <= endDate;
-    });
-
-    const totalHours = filteredSchedules.reduce((sum, entry) => {
-      return sum + parseFloat(entry.totalHours);
-    }, 0);
-    return totalHours * HOURLY_RATE;
+    return calculateTotalEarnings(schedules, viewType, HOURLY_RATE);
   }, [schedules, viewType]);
 
   const totalTaxes = useMemo(() => {
