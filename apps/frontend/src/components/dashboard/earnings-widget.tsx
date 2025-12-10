@@ -1,7 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
-import type { ScheduleEntry } from "@/types";
-import { calculateTotalEarnings } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import {
   Card,
   CardContent,
@@ -10,15 +8,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import type { ChartConfig } from "@/components/ui/chart";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import type { ChartConfig } from "@/components/ui/chart";
-import { Button } from "@/components/ui/button";
-import { ButtonGroup } from "@/components/ui/button-group";
 import { useSettings } from "@/hooks/use-settings";
+import { calculateTotalEarnings } from "@/lib/utils";
+import type { ScheduleEntry } from "@/types";
+import { useEffect, useMemo, useState } from "react";
+import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 
 type ViewType = "daily" | "weekly" | "monthly";
 
