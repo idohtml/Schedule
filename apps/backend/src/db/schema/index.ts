@@ -177,9 +177,57 @@ export const scheduleRelations = relations(schedule, ({ one }) => ({
   }),
 }));
 
-export const userRelations = relations(user, ({ many }) => ({
+export const userSettings = pgTable(
+  "user_settings",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .unique()
+      .references(() => user.id, { onDelete: "cascade" }),
+    hourlyRate: numeric("hourly_rate", { precision: 10, scale: 2 })
+      .default("147.00")
+      .notNull(),
+    taxRate: numeric("tax_rate", { precision: 5, scale: 4 })
+      .default("0.3000")
+      .notNull(), // 0.3000 = 30%
+    monthlyGoalHours: numeric("monthly_goal_hours", { precision: 5, scale: 2 })
+      .default("160.00")
+      .notNull(),
+    dateFormat: text("date_format").default("en-US").notNull(), // e.g., "en-US", "sv-SE"
+    timeFormat: text("time_format").default("24h").notNull(), // "12h" or "24h"
+    timezone: text("timezone").default("Europe/Stockholm").notNull(),
+    notificationsEnabled: boolean("notifications_enabled")
+      .default(true)
+      .notNull(),
+    emailNotifications: boolean("email_notifications").default(false).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => ({
+    indexes: {
+      userSettingsUserIdIdx: index("user_settings_userId_idx").on(table.userId),
+    },
+  })
+);
+
+export const userRelations = relations(user, ({ many, one }) => ({
   sessions: many(session),
   accounts: many(account),
   schedules: many(schedule),
   projects: many(project),
+  settings: one(userSettings, {
+    fields: [user.id],
+    references: [userSettings.userId],
+  }),
+}));
+
+export const userSettingsRelations = relations(userSettings, ({ one }) => ({
+  user: one(user, {
+    fields: [userSettings.userId],
+    references: [user.id],
+  }),
 }));
