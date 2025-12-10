@@ -3,7 +3,6 @@ import { node } from "@elysiajs/node";
 import openapi from "@elysiajs/openapi";
 import cors from "@elysiajs/cors";
 import { betterAuth } from "./middleware/auth.js";
-import { postsRoutes } from "./routes/posts.js";
 import { userRoutes } from "./routes/user.js";
 
 const app = new Elysia({ adapter: node() })
@@ -18,7 +17,6 @@ const app = new Elysia({ adapter: node() })
   .use(openapi())
   .get("/", () => "Hello Elysia")
   .use(betterAuth)
-  .use(postsRoutes)
   .use(userRoutes)
   .listen(3000, ({ hostname, port }) => {
     console.log(`🦊 Elysia is running at ${hostname}:${port}`);

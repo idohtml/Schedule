@@ -8,7 +8,10 @@ export const user = pgTable("user", {
   emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => /* @__PURE__ */ new Date())
+    .notNull(),
 });
 
 export const session = pgTable(
@@ -18,7 +21,9 @@ export const session = pgTable(
     expiresAt: timestamp("expires_at").notNull(),
     token: text("token").notNull().unique(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
     ipAddress: text("ip_address"),
     userAgent: text("user_agent"),
     userId: text("user_id")
@@ -26,7 +31,7 @@ export const session = pgTable(
       .references(() => user.id, { onDelete: "cascade" }),
   },
   (table) => ({
-    userIdIdx: index("session_userId_idx").on(table.userId),
+    indexes: [index("session_userId_idx").on(table.userId)],
   })
 );
 
@@ -47,10 +52,12 @@ export const account = pgTable(
     scope: text("scope"),
     password: text("password"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
   },
   (table) => ({
-    userIdIdx: index("account_userId_idx").on(table.userId),
+    indexes: [index("account_userId_idx").on(table.userId)],
   })
 );
 
@@ -62,17 +69,19 @@ export const verification = pgTable(
     value: text("value").notNull(),
     expiresAt: timestamp("expires_at").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
   },
   (table) => ({
-    identifierIdx: index("verification_identifier_idx").on(table.identifier),
+    indexes: [index("verification_identifier_idx").on(table.identifier)],
   })
 );
 
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
-  posts: many(posts),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -85,25 +94,6 @@ export const sessionRelations = relations(session, ({ one }) => ({
 export const accountRelations = relations(account, ({ one }) => ({
   user: one(user, {
     fields: [account.userId],
-    references: [user.id],
-  }),
-}));
-
-// Add a posts table
-export const posts = pgTable("posts", {
-  id: text("id").primaryKey(),
-  title: text("title").notNull(),
-  content: text("content").notNull(),
-  authorId: text("author_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-export const postRelations = relations(posts, ({ one }) => ({
-  author: one(user, {
-    fields: [posts.authorId],
     references: [user.id],
   }),
 }));
