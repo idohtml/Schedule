@@ -1,0 +1,14 @@
+{
+  "name": "website-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --parallel --filter \"./apps/*\" dev",
+    "dev:backend": "pnpm --filter @website/backend dev",
+    "dev:frontend": "pnpm --filter @website/frontend dev",
+    "build": "pnpm --filter \"./apps/*\" build"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}
