@@ -249,10 +249,9 @@ export function ScheduleList() {
             </DrawerContent>
           </Drawer>
         </div>
-        {isLoadingSchedules ? (
-          <div className="p-8 text-center text-muted-foreground">
-            Loading schedule entries...
-          </div>
+        {isLoadingSchedules && schedules.length === 0 ? (
+          // Suspense fallback will show during initial load
+          null
         ) : schedules.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground">
             No schedule entries found. Add your first entry to get started!

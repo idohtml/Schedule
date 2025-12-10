@@ -1,8 +1,11 @@
+import { Suspense } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSession } from "../lib/auth-client";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ScheduleList } from "@/components/dashboard/schedule-list";
 import { EarningsWidget } from "@/components/dashboard/earnings-widget";
+import { EarningsWidgetSkeleton } from "@/components/dashboard/earnings-widget-skeleton";
+import { ScheduleListSkeleton } from "@/components/dashboard/schedule-list-skeleton";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -69,7 +72,9 @@ function App() {
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4">
           <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-            <EarningsWidget />
+            <Suspense fallback={<EarningsWidgetSkeleton />}>
+              <EarningsWidget />
+            </Suspense>
             <div className="bg-muted/50 aspect-video rounded-xl flex items-center justify-center">
               <span className="text-muted-foreground">Widget 2</span>
             </div>
@@ -77,7 +82,9 @@ function App() {
               <span className="text-muted-foreground">Widget 3</span>
             </div>
           </div>
-          <ScheduleList />
+          <Suspense fallback={<ScheduleListSkeleton />}>
+            <ScheduleList />
+          </Suspense>
         </div>
       </SidebarInset>
     </SidebarProvider>

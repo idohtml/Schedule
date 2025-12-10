@@ -200,15 +200,10 @@ export function EarningsWidget() {
     return totalEarnings - totalTaxes;
   }, [totalEarnings, totalTaxes]);
 
-  if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Earnings</CardTitle>
-          <CardDescription>Loading...</CardDescription>
-        </CardHeader>
-      </Card>
-    );
+  // Show skeleton during initial load (Suspense will handle this)
+  // Keep internal loading for viewType changes
+  if (isLoading && schedules.length === 0) {
+    return null; // Suspense fallback will show
   }
 
   const getDescription = () => {
