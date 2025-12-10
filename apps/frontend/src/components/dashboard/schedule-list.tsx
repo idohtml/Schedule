@@ -55,7 +55,11 @@ interface Project {
   companyName?: string | null;
 }
 
-export function ScheduleList() {
+interface ScheduleListProps {
+  refreshKey?: number;
+}
+
+export function ScheduleList({ refreshKey }: ScheduleListProps) {
   const [schedules, setSchedules] = useState<ScheduleEntry[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoadingSchedules, setIsLoadingSchedules] = useState(true);
@@ -79,7 +83,7 @@ export function ScheduleList() {
   useEffect(() => {
     fetchSchedules();
     fetchProjects();
-  }, []);
+  }, [refreshKey]);
 
   const fetchProjects = async () => {
     try {

@@ -1,6 +1,7 @@
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useSession } from "../lib/auth-client";
+import { RefreshCw } from "lucide-react";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ScheduleList } from "@/components/dashboard/schedule-list";
 import { EarningsWidget } from "@/components/dashboard/earnings-widget";
@@ -24,6 +25,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
 
 export const Route = createFileRoute("/")({
@@ -33,6 +35,7 @@ export const Route = createFileRoute("/")({
 function App() {
   const { data: session, isPending } = useSession();
   const navigate = useNavigate();
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Always call hooks in the same order
   useEffect(() => {
@@ -40,6 +43,10 @@ function App() {
       navigate({ to: "/login", replace: true });
     }
   }, [session, isPending, navigate]);
+
+  const handleRefresh = () => {
+    setRefreshKey((prev) => prev + 1);
+  };
 
   // Always render something - don't conditionally return early before hooks
   if (isPending) {
@@ -67,7 +74,7 @@ function App() {
       <AppSidebar />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 border-b">
-          <div className="flex items-center gap-2 px-3">
+          <div className="flex items-center gap-2 px-3 flex-1">
             <SidebarTrigger />
             <Separator orientation="vertical" className="mr-2 h-4" />
             <Breadcrumb>
@@ -82,21 +89,43 @@ function App() {
               </BreadcrumbList>
             </Breadcrumb>
           </div>
+          <div className="px-3">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleRefresh}
+              title="Refresh data"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+          </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4">
           <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-            <Suspense fallback={<EarningsWidgetSkeleton />}>
-              <EarningsWidget />
+            <Suspense
+              fallback={<EarningsWidgetSkeleton />}
+              key={`earnings-${refreshKey}`}
+            >
+              <EarningsWidget refreshKey={refreshKey} />
             </Suspense>
-            <Suspense fallback={<HoursWidgetSkeleton />}>
-              <HoursWidget />
+            <Suspense
+              fallback={<HoursWidgetSkeleton />}
+              key={`hours-${refreshKey}`}
+            >
+              <HoursWidget refreshKey={refreshKey} />
             </Suspense>
-            <Suspense fallback={<ProjectHoursWidgetSkeleton />}>
-              <ProjectHoursWidget />
+            <Suspense
+              fallback={<ProjectHoursWidgetSkeleton />}
+              key={`projects-${refreshKey}`}
+            >
+              <ProjectHoursWidget refreshKey={refreshKey} />
             </Suspense>
           </div>
-          <Suspense fallback={<ScheduleListSkeleton />}>
-            <ScheduleList />
+          <Suspense
+            fallback={<ScheduleListSkeleton />}
+            key={`schedule-${refreshKey}`}
+          >
+            <ScheduleList refreshKey={refreshKey} />
           </Suspense>
         </div>
       </SidebarInset>

@@ -30,14 +30,18 @@ const chartConfig = {
 
 const MONTHLY_GOAL_HOURS = 160; // Target hours per month
 
-export function HoursWidget() {
+interface HoursWidgetProps {
+  refreshKey?: number;
+}
+
+export function HoursWidget({ refreshKey }: HoursWidgetProps) {
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
   const [totalHours, setTotalHours] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchMonthlyHours();
-  }, [selectedMonth]);
+  }, [selectedMonth, refreshKey]);
 
   const fetchMonthlyHours = async () => {
     try {

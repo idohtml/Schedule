@@ -33,14 +33,18 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function EarningsWidget() {
+interface EarningsWidgetProps {
+  refreshKey?: number;
+}
+
+export function EarningsWidget({ refreshKey }: EarningsWidgetProps) {
   const [schedules, setSchedules] = useState<ScheduleEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [viewType, setViewType] = useState<ViewType>("daily");
 
   useEffect(() => {
     fetchSchedules();
-  }, [viewType]);
+  }, [viewType, refreshKey]);
 
   const fetchSchedules = async () => {
     try {

@@ -26,7 +26,11 @@ interface ProjectWithHours extends Project {
   totalHours: number;
 }
 
-export function ProjectHoursWidget() {
+interface ProjectHoursWidgetProps {
+  refreshKey?: number;
+}
+
+export function ProjectHoursWidget({ refreshKey }: ProjectHoursWidgetProps) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectsWithHours, setProjectsWithHours] = useState<
     ProjectWithHours[]
@@ -42,13 +46,19 @@ export function ProjectHoursWidget() {
 
   useEffect(() => {
     fetchProjects();
-  }, []);
+  }, [refreshKey]);
 
   useEffect(() => {
     if (projects.length > 0) {
       fetchAllProjectHours();
     }
   }, [projects]);
+
+  useEffect(() => {
+    if (projects.length > 0 && refreshKey !== undefined) {
+      fetchAllProjectHours();
+    }
+  }, [refreshKey]);
 
   const fetchProjects = async () => {
     try {
