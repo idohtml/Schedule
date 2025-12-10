@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { TrendingUp } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 import type { ScheduleEntry } from "@/types";
 import {
@@ -18,8 +17,13 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import type { ChartConfig } from "@/components/ui/chart";
+import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 
 const HOURLY_RATE = 147; // SEK per hour before taxes
+const TAX_RATE = 0.3; // 30% tax rate
+
+type ViewType = "daily" | "weekly" | "monthly";
 
 const chartConfig = {
   earnings: {
@@ -31,18 +35,30 @@ const chartConfig = {
 export function EarningsWidget() {
   const [schedules, setSchedules] = useState<ScheduleEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [viewType, setViewType] = useState<ViewType>("daily");
 
   useEffect(() => {
     fetchSchedules();
-  }, []);
+  }, [viewType]);
 
   const fetchSchedules = async () => {
     try {
       setIsLoading(true);
-      // Get last 7 days of data
       const endDate = new Date();
       const startDate = new Date();
-      startDate.setDate(startDate.getDate() - 6); // Last 7 days
+
+      // Calculate date range based on view type
+      switch (viewType) {
+        case "daily":
+          startDate.setDate(startDate.getDate() - 6); // Last 7 days
+          break;
+        case "weekly":
+          startDate.setDate(startDate.getDate() - 27); // Last 4 weeks (28 days)
+          break;
+        case "monthly":
+          startDate.setMonth(startDate.getMonth() - 5); // Last 6 months
+          break;
+      }
 
       const response = await fetch(
         `http://localhost:3000/api/schedule?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`,
@@ -66,72 +82,150 @@ export function EarningsWidget() {
     }
   };
 
-  // Group schedules by date and calculate daily earnings
+  // Group schedules by period and calculate earnings
   const chartData = useMemo(() => {
-    // Get last 7 days
-    const days = [];
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      date.setHours(0, 0, 0, 0);
+    if (viewType === "daily") {
+      // Get last 7 days
+      const days = [];
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        date.setHours(0, 0, 0, 0);
 
-      const dayName = date.toLocaleDateString("en-US", { weekday: "short" });
-      const dayNumber = date.getDate();
-      const label = `${dayName} ${dayNumber}`;
+        const dayName = date.toLocaleDateString("en-US", { weekday: "short" });
+        const dayNumber = date.getDate();
+        const label = `${dayName} ${dayNumber}`;
 
-      // Find all entries for this date
-      const dayEntries = schedules.filter((entry) => {
-        const entryDate = new Date(entry.date);
-        entryDate.setHours(0, 0, 0, 0);
-        return entryDate.getTime() === date.getTime();
-      });
+        // Find all entries for this date
+        const dayEntries = schedules.filter((entry) => {
+          const entryDate = new Date(entry.date);
+          entryDate.setHours(0, 0, 0, 0);
+          return entryDate.getTime() === date.getTime();
+        });
 
-      // Calculate total hours and earnings for this day
-      const totalHours = dayEntries.reduce((sum, entry) => {
-        return sum + parseFloat(entry.totalHours);
-      }, 0);
+        // Calculate total hours and earnings for this day
+        const totalHours = dayEntries.reduce((sum, entry) => {
+          return sum + parseFloat(entry.totalHours);
+        }, 0);
 
-      const earnings = totalHours * HOURLY_RATE;
+        const earnings = totalHours * HOURLY_RATE;
 
-      days.push({
-        day: label,
-        earnings: Math.round(earnings),
-      });
+        days.push({
+          period: label,
+          earnings: Math.round(earnings),
+        });
+      }
+      return days;
+    } else if (viewType === "weekly") {
+      // Get last 4 weeks
+      const weeks = [];
+      for (let i = 3; i >= 0; i--) {
+        const weekEnd = new Date();
+        weekEnd.setDate(weekEnd.getDate() - i * 7);
+        const weekStart = new Date(weekEnd);
+        weekStart.setDate(weekStart.getDate() - 6);
+        weekStart.setHours(0, 0, 0, 0);
+        weekEnd.setHours(23, 59, 59, 999);
+
+        const label = `Week ${i + 1}`;
+
+        // Find all entries for this week
+        const weekEntries = schedules.filter((entry) => {
+          const entryDate = new Date(entry.date);
+          return entryDate >= weekStart && entryDate <= weekEnd;
+        });
+
+        // Calculate total hours and earnings for this week
+        const totalHours = weekEntries.reduce((sum, entry) => {
+          return sum + parseFloat(entry.totalHours);
+        }, 0);
+
+        const earnings = totalHours * HOURLY_RATE;
+
+        weeks.push({
+          period: label,
+          earnings: Math.round(earnings),
+        });
+      }
+      return weeks;
+    } else {
+      // Get last 6 months
+      const months = [];
+      for (let i = 5; i >= 0; i--) {
+        const month = new Date();
+        month.setMonth(month.getMonth() - i);
+        month.setDate(1);
+        month.setHours(0, 0, 0, 0);
+
+        const monthEnd = new Date(month);
+        monthEnd.setMonth(monthEnd.getMonth() + 1);
+        monthEnd.setDate(0);
+        monthEnd.setHours(23, 59, 59, 999);
+
+        const label = month.toLocaleDateString("en-US", { month: "short" });
+
+        // Find all entries for this month
+        const monthEntries = schedules.filter((entry) => {
+          const entryDate = new Date(entry.date);
+          return entryDate >= month && entryDate <= monthEnd;
+        });
+
+        // Calculate total hours and earnings for this month
+        const totalHours = monthEntries.reduce((sum, entry) => {
+          return sum + parseFloat(entry.totalHours);
+        }, 0);
+
+        const earnings = totalHours * HOURLY_RATE;
+
+        months.push({
+          period: label,
+          earnings: Math.round(earnings),
+        });
+      }
+      return months;
+    }
+  }, [schedules, viewType]);
+
+  // Calculate total earnings for the selected view period
+  const totalEarnings = useMemo(() => {
+    const endDate = new Date();
+    const startDate = new Date();
+
+    // Calculate date range based on view type (same as fetchSchedules)
+    switch (viewType) {
+      case "daily":
+        startDate.setDate(startDate.getDate() - 6); // Last 7 days
+        break;
+      case "weekly":
+        startDate.setDate(startDate.getDate() - 27); // Last 4 weeks (28 days)
+        break;
+      case "monthly":
+        startDate.setMonth(startDate.getMonth() - 5); // Last 6 months
+        break;
     }
 
-    return days;
-  }, [schedules]);
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(23, 59, 59, 999);
 
-  // Calculate total earnings and trend
-  const totalEarnings = useMemo(() => {
-    const totalHours = schedules.reduce((sum, entry) => {
-      return sum + parseFloat(entry.totalHours);
-    }, 0);
-    return totalHours * HOURLY_RATE;
-  }, [schedules]);
-
-  const previousWeekEarnings = useMemo(() => {
-    // Calculate earnings for days 7-13 (previous week)
-    const previousWeekEntries = schedules.filter((entry) => {
+    // Filter schedules to match the selected view period
+    const filteredSchedules = schedules.filter((entry) => {
       const entryDate = new Date(entry.date);
-      const daysAgo = Math.floor(
-        (new Date().getTime() - entryDate.getTime()) / (1000 * 60 * 60 * 24)
-      );
-      return daysAgo >= 7 && daysAgo < 14;
+      return entryDate >= startDate && entryDate <= endDate;
     });
 
-    const totalHours = previousWeekEntries.reduce((sum, entry) => {
+    const totalHours = filteredSchedules.reduce((sum, entry) => {
       return sum + parseFloat(entry.totalHours);
     }, 0);
     return totalHours * HOURLY_RATE;
-  }, [schedules]);
+  }, [schedules, viewType]);
 
-  const trendPercentage = useMemo(() => {
-    if (previousWeekEarnings === 0) return "0.0";
-    const change =
-      ((totalEarnings - previousWeekEarnings) / previousWeekEarnings) * 100;
-    return change.toFixed(1);
-  }, [totalEarnings, previousWeekEarnings]);
+  const totalTaxes = useMemo(() => {
+    return totalEarnings * TAX_RATE;
+  }, [totalEarnings]);
+
+  const afterTaxEarnings = useMemo(() => {
+    return totalEarnings - totalTaxes;
+  }, [totalEarnings, totalTaxes]);
 
   if (isLoading) {
     return (
@@ -144,18 +238,58 @@ export function EarningsWidget() {
     );
   }
 
+  const getDescription = () => {
+    switch (viewType) {
+      case "daily":
+        return "Last 7 days";
+      case "weekly":
+        return "Last 4 weeks";
+      case "monthly":
+        return "Last 6 months";
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Earnings</CardTitle>
-        <CardDescription>Last 7 days - {HOURLY_RATE} SEK/hour</CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Earnings</CardTitle>
+            <CardDescription>
+              {getDescription()} - {HOURLY_RATE} SEK/hour
+            </CardDescription>
+          </div>
+          <ButtonGroup>
+            <Button
+              variant={viewType === "daily" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewType("daily")}
+            >
+              Daily
+            </Button>
+            <Button
+              variant={viewType === "weekly" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewType("weekly")}
+            >
+              Weekly
+            </Button>
+            <Button
+              variant={viewType === "monthly" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewType("monthly")}
+            >
+              Monthly
+            </Button>
+          </ButtonGroup>
+        </div>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
           <BarChart accessibilityLayer data={chartData}>
             <CartesianGrid vertical={false} />
             <XAxis
-              dataKey="day"
+              dataKey="period"
               tickLine={false}
               tickMargin={10}
               axisLine={false}
@@ -164,25 +298,34 @@ export function EarningsWidget() {
               cursor={false}
               content={<ChartTooltipContent hideLabel />}
             />
-            <Bar dataKey="earnings" fill="var(--color-earnings)" radius={8} />
+            <Bar
+              dataKey="earnings"
+              fill="var(--color-earnings)"
+              radius={8}
+              style={{ cursor: "pointer" }}
+            />
           </BarChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="flex gap-2 leading-none font-medium">
-          Total: {totalEarnings.toFixed(0)} SEK
-          {trendPercentage !== "0.0" && (
-            <>
-              {" "}
-              ({parseFloat(trendPercentage) > 0 ? "+" : ""}
-              {trendPercentage}% vs previous week)
-              {parseFloat(trendPercentage) > 0 && (
-                <TrendingUp className="h-4 w-4" />
-              )}
-            </>
-          )}
+      <CardFooter className="flex flex-col w-full gap-1.5 text-sm">
+        <div className="flex items-center justify-between w-full leading-none">
+          <span className="text-muted-foreground">Earnings</span>
+          <span className="font-medium tabular-nums">
+            {totalEarnings.toFixed(0)} SEK
+          </span>
         </div>
-        <div className="text-muted-foreground leading-none">Before taxes</div>
+        <div className="flex items-center justify-between w-full leading-none">
+          <span className="text-muted-foreground">Taxes</span>
+          <span className="font-medium tabular-nums">
+            {totalTaxes.toFixed(1)} SEK
+          </span>
+        </div>
+        <div className="flex items-center justify-between w-full leading-none border-t pt-1.5 mt-0.5">
+          <span className="text-muted-foreground">After</span>
+          <span className="font-semibold tabular-nums">
+            {afterTaxEarnings.toFixed(0)} SEK
+          </span>
+        </div>
       </CardFooter>
     </Card>
   );
