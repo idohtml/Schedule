@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Drawer,
   DrawerClose,
@@ -330,10 +331,15 @@ export function ScheduleList({ refreshKey }: ScheduleListProps) {
   };
 
   return (
-    <div className="bg-muted/40 min-h-screen flex-1 rounded-2xl md:min-h-min p-2">
-      <div className="bg-background rounded-lg border">
-        <div className="p-4 border-b flex items-center justify-between">
-          <div />
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle>
+            Schedule Entries
+            <span className="ml-2 text-muted-foreground font-normal">
+              ({schedules.length})
+            </span>
+          </CardTitle>
           <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
             <DrawerTrigger asChild>
               <Button variant="outline" onClick={handleCreate}>
@@ -463,6 +469,8 @@ export function ScheduleList({ refreshKey }: ScheduleListProps) {
             </DrawerContent>
           </Drawer>
         </div>
+      </CardHeader>
+      <CardContent>
         {isLoadingSchedules &&
         schedules.length === 0 ? null : schedules.length === 0 ? ( // Suspense fallback will show during initial load
           <div className="p-8 text-center text-muted-foreground">
@@ -587,7 +595,7 @@ export function ScheduleList({ refreshKey }: ScheduleListProps) {
             )}
           </>
         )}
-      </div>
+      </CardContent>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
@@ -649,6 +657,6 @@ export function ScheduleList({ refreshKey }: ScheduleListProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </Card>
   );
 }
