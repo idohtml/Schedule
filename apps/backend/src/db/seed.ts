@@ -43,11 +43,12 @@ async function seed() {
   const userId = users[0].id;
   console.log(`📝 Seeding schedule data for user: ${users[0].email}`);
 
+  // Generate schedule entries for the past 3 weeks (approximately 15 working days)
   // December 10, 2024 is a Tuesday
-  // Going back 5 working days (excluding weekends):
-  // Dec 10 (Tuesday), Dec 9 (Monday), Dec 6 (Friday), Dec 5 (Thursday), Dec 4 (Wednesday)
+  // Creating entries for working days going back 3 weeks
 
   const scheduleEntries = [
+    // Week 1 (Most recent)
     {
       date: new Date("2024-12-10"), // Tuesday
       startTime: "09:00:00",
@@ -77,6 +78,87 @@ async function seed() {
       startTime: "10:00:00",
       endTime: "18:30:00",
       notes: "Late start, late finish",
+    },
+    // Week 2
+    {
+      date: new Date("2024-12-03"), // Tuesday
+      startTime: "09:00:00",
+      endTime: "17:00:00",
+      notes: "Standard day",
+    },
+    {
+      date: new Date("2024-12-02"), // Monday
+      startTime: "08:00:00",
+      endTime: "16:30:00",
+      notes: "Early morning start",
+    },
+    {
+      date: new Date("2024-11-29"), // Friday
+      startTime: "09:30:00",
+      endTime: "17:30:00",
+      notes: "Friday work",
+    },
+    {
+      date: new Date("2024-11-28"), // Thursday
+      startTime: "09:00:00",
+      endTime: "18:15:00",
+      notes: "Extended hours",
+    },
+    {
+      date: new Date("2024-11-27"), // Wednesday
+      startTime: "10:15:00",
+      endTime: "19:00:00",
+      notes: "Flexible schedule",
+    },
+    // Week 3
+    {
+      date: new Date("2024-11-26"), // Tuesday
+      startTime: "08:45:00",
+      endTime: "17:15:00",
+      notes: "Morning shift",
+    },
+    {
+      date: new Date("2024-11-25"), // Monday
+      startTime: "09:00:00",
+      endTime: "17:00:00",
+      notes: "Regular Monday",
+    },
+    {
+      date: new Date("2024-11-22"), // Friday
+      startTime: "09:00:00",
+      endTime: "15:30:00",
+      notes: "Early finish Friday",
+    },
+    {
+      date: new Date("2024-11-21"), // Thursday
+      startTime: "09:30:00",
+      endTime: "18:00:00",
+      notes: "Full day",
+    },
+    {
+      date: new Date("2024-11-20"), // Wednesday
+      startTime: "08:00:00",
+      endTime: "16:00:00",
+      notes: "Early shift",
+    },
+    // Additional entries for better pagination testing
+    {
+      date: new Date("2024-11-19"), // Tuesday
+      startTime: "10:00:00",
+      endTime: "18:00:00",
+      notes: "Standard hours",
+    },
+    {
+      date: new Date("2024-11-18"), // Monday
+      startTime: "09:00:00",
+      endTime: "17:30:00",
+      notes: "Regular Monday",
+    },
+    {
+      date: new Date("2024-11-15"), // Friday
+      startTime: "09:00:00",
+      endTime: "16:45:00",
+      notes: "Friday work",
     },
   ];
 

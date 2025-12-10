@@ -25,7 +25,7 @@ export default function LoginForm({
       setIsLoading(true);
       const result = await signIn.social({
         provider: "google",
-        callbackURL: `${window.location.origin}/`, // Redirect back to frontend home after OAuth
+        callbackURL: `${window.location.origin}/`, // Where to redirect after OAuth completes
       });
 
       // better-auth returns either a redirect URL or success with user data

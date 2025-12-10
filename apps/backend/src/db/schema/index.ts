@@ -101,6 +101,29 @@ export const accountRelations = relations(account, ({ one }) => ({
   }),
 }));
 
+export const project = pgTable(
+  "project",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    companyName: text("company_name"),
+    description: text("description"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => ({
+    indexes: {
+      projectUserIdIdx: index("project_userId_idx").on(table.userId),
+    },
+  })
+);
+
 export const schedule = pgTable(
   "schedule",
   {
@@ -108,6 +131,9 @@ export const schedule = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
+    projectId: text("project_id").references(() => project.id, {
+      onDelete: "set null",
+    }),
     date: timestamp("date", { mode: "date" }).notNull(),
     startTime: time("start_time").notNull(),
     endTime: time("end_time").notNull(),
@@ -122,6 +148,7 @@ export const schedule = pgTable(
   (table) => ({
     indexes: {
       scheduleUserIdIdx: index("schedule_userId_idx").on(table.userId),
+      scheduleProjectIdIdx: index("schedule_projectId_idx").on(table.projectId),
       scheduleDateIdx: index("schedule_date_idx").on(table.date),
       scheduleUserIdDateIdx: index("schedule_userId_date_idx").on(
         table.userId,
@@ -131,10 +158,22 @@ export const schedule = pgTable(
   })
 );
 
+export const projectRelations = relations(project, ({ one, many }) => ({
+  user: one(user, {
+    fields: [project.userId],
+    references: [user.id],
+  }),
+  schedules: many(schedule),
+}));
+
 export const scheduleRelations = relations(schedule, ({ one }) => ({
   user: one(user, {
     fields: [schedule.userId],
     references: [user.id],
+  }),
+  project: one(project, {
+    fields: [schedule.projectId],
+    references: [project.id],
   }),
 }));
 
@@ -142,4 +181,5 @@ export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
   schedules: many(schedule),
+  projects: many(project),
 }));

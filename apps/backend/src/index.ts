@@ -5,6 +5,7 @@ import cors from "@elysiajs/cors";
 import { betterAuth } from "./middleware/auth.js";
 import { userRoutes } from "./routes/user.js";
 import { scheduleRoutes } from "./routes/schedule.js";
+import { projectRoutes } from "./routes/project.js";
 
 const app = new Elysia({ adapter: node() })
   .use(
@@ -20,6 +21,7 @@ const app = new Elysia({ adapter: node() })
   .use(betterAuth)
   .use(userRoutes)
   .use(scheduleRoutes)
+  .use(projectRoutes)
   .listen(3000, ({ hostname, port }) => {
     console.log(`🦊 Elysia is running at ${hostname}:${port}`);
   });

@@ -1,11 +1,15 @@
 import { Suspense } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useSession } from "../lib/auth-client";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ScheduleList } from "@/components/dashboard/schedule-list";
 import { EarningsWidget } from "@/components/dashboard/earnings-widget";
 import { EarningsWidgetSkeleton } from "@/components/dashboard/earnings-widget-skeleton";
 import { ScheduleListSkeleton } from "@/components/dashboard/schedule-list-skeleton";
+import { HoursWidget } from "@/components/dashboard/hours-widget";
+import { HoursWidgetSkeleton } from "@/components/dashboard/hours-widget-skeleton";
+import { ProjectHoursWidget } from "@/components/dashboard/project-hours-widget";
+import { ProjectHoursWidgetSkeleton } from "@/components/dashboard/project-hours-widget-skeleton";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -20,6 +24,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/")({
   component: App,
@@ -27,7 +32,16 @@ export const Route = createFileRoute("/")({
 
 function App() {
   const { data: session, isPending } = useSession();
+  const navigate = useNavigate();
 
+  // Always call hooks in the same order
+  useEffect(() => {
+    if (!isPending && !session?.session) {
+      navigate({ to: "/login", replace: true });
+    }
+  }, [session, isPending, navigate]);
+
+  // Always render something - don't conditionally return early before hooks
   if (isPending) {
     return (
       <div className="flex flex-col min-h-screen items-center justify-center">
@@ -36,7 +50,6 @@ function App() {
     );
   }
 
-  // Protect the route - show login message if not authenticated
   if (!session?.session) {
     return (
       <div className="flex flex-col min-h-screen items-center justify-center">
@@ -75,12 +88,12 @@ function App() {
             <Suspense fallback={<EarningsWidgetSkeleton />}>
               <EarningsWidget />
             </Suspense>
-            <div className="bg-muted/50 aspect-video rounded-xl flex items-center justify-center">
-              <span className="text-muted-foreground">Widget 2</span>
-            </div>
-            <div className="bg-muted/50 aspect-video rounded-xl flex items-center justify-center">
-              <span className="text-muted-foreground">Widget 3</span>
-            </div>
+            <Suspense fallback={<HoursWidgetSkeleton />}>
+              <HoursWidget />
+            </Suspense>
+            <Suspense fallback={<ProjectHoursWidgetSkeleton />}>
+              <ProjectHoursWidget />
+            </Suspense>
           </div>
           <Suspense fallback={<ScheduleListSkeleton />}>
             <ScheduleList />

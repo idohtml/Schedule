@@ -7,6 +7,7 @@ export const scheduleEntrySchema = z.object({
   endTime: z.string(),
   totalHours: z.string(),
   notes: z.string().nullable(),
+  projectId: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

@@ -23,6 +23,13 @@ import {
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Pagination,
   PaginationContent,
   PaginationEllipsis,
@@ -31,25 +38,67 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const ITEMS_PER_PAGE = 15;
 
+interface Project {
+  id: string;
+  name: string;
+  companyName?: string | null;
+}
+
 export function ScheduleList() {
   const [schedules, setSchedules] = useState<ScheduleEntry[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [isLoadingSchedules, setIsLoadingSchedules] = useState(true);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingEntry, setEditingEntry] = useState<ScheduleEntry | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [entryToDelete, setEntryToDelete] = useState<ScheduleEntry | null>(
+    null
+  );
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split("T")[0],
     startTime: "09:00",
     endTime: "17:00",
+    projectId: "",
   });
 
   useEffect(() => {
     fetchSchedules();
+    fetchProjects();
   }, []);
+
+  const fetchProjects = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/api/project", {
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch projects");
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        setProjects(result.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+    }
+  };
 
   const fetchSchedules = async () => {
     try {
@@ -84,9 +133,63 @@ export function ScheduleList() {
       date: dateStr,
       startTime: startTimeStr,
       endTime: endTimeStr,
+      projectId: entry.projectId || "",
     });
     setEditingEntry(entry);
     setIsDrawerOpen(true);
+  };
+
+  const handleDeleteClick = (entry: ScheduleEntry) => {
+    setEntryToDelete(entry);
+    setDeleteConfirmation("");
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!entryToDelete || deleteConfirmation.toLowerCase() !== "confirm") {
+      return;
+    }
+
+    setIsDeleting(true);
+
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/schedule/${entryToDelete.id}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to delete schedule entry");
+      }
+
+      // Close dialog and reset state
+      setIsDeleteDialogOpen(false);
+      setEntryToDelete(null);
+      setDeleteConfirmation("");
+
+      // Refresh schedules
+      await fetchSchedules();
+
+      // Adjust pagination if needed
+      const remainingItems = schedules.length - 1;
+      const newTotalPages = Math.ceil(remainingItems / ITEMS_PER_PAGE);
+      if (currentPage > newTotalPages && newTotalPages > 0) {
+        setCurrentPage(newTotalPages);
+      }
+    } catch (error) {
+      console.error("Error deleting schedule entry:", error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Failed to delete schedule entry"
+      );
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleCreate = () => {
@@ -95,6 +198,7 @@ export function ScheduleList() {
       date: new Date().toISOString().split("T")[0],
       startTime: "09:00",
       endTime: "17:00",
+      projectId: "",
     });
     setIsDrawerOpen(true);
   };
@@ -119,6 +223,7 @@ export function ScheduleList() {
           date: formData.date,
           startTime: `${formData.startTime}:00`,
           endTime: `${formData.endTime}:00`,
+          projectId: formData.projectId || null,
         }),
       });
 
@@ -135,6 +240,7 @@ export function ScheduleList() {
         date: new Date().toISOString().split("T")[0],
         startTime: "09:00",
         endTime: "17:00",
+        projectId: "",
       });
       setEditingEntry(null);
       setIsDrawerOpen(false);
@@ -291,6 +397,34 @@ export function ScheduleList() {
                         required
                       />
                     </Field>
+                    <Field>
+                      <FieldLabel htmlFor="project">
+                        Project (Optional)
+                      </FieldLabel>
+                      <Select
+                        value={formData.projectId || undefined}
+                        onValueChange={(value) =>
+                          setFormData({
+                            ...formData,
+                            projectId: value === "none" ? "" : value,
+                          })
+                        }
+                      >
+                        <SelectTrigger id="project">
+                          <SelectValue placeholder="Select a project" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
+                          {projects.map((project) => (
+                            <SelectItem key={project.id} value={project.id}>
+                              {project.companyName
+                                ? `${project.name} (${project.companyName})`
+                                : project.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </Field>
                   </FieldGroup>
                 </div>
                 <DrawerFooter>
@@ -313,6 +447,7 @@ export function ScheduleList() {
                           date: new Date().toISOString().split("T")[0],
                           startTime: "09:00",
                           endTime: "17:00",
+                          projectId: "",
                         });
                       }}
                     >
@@ -335,6 +470,7 @@ export function ScheduleList() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Date</TableHead>
+                  <TableHead>Project</TableHead>
                   <TableHead>Start Time</TableHead>
                   <TableHead>End Time</TableHead>
                   <TableHead>Total Hours</TableHead>
@@ -342,25 +478,48 @@ export function ScheduleList() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedSchedules.map((entry) => (
-                  <TableRow key={entry.id}>
-                    <TableCell className="font-medium">
-                      {formatDate(entry.date)}
-                    </TableCell>
-                    <TableCell>{formatTime(entry.startTime)}</TableCell>
-                    <TableCell>{formatTime(entry.endTime)}</TableCell>
-                    <TableCell>{entry.totalHours} hrs</TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEdit(entry)}
-                      >
-                        Edit
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {paginatedSchedules.map((entry) => {
+                  const project = entry.projectId
+                    ? projects.find((p) => p.id === entry.projectId)
+                    : null;
+                  const projectName = project
+                    ? project.companyName
+                      ? `${project.name} (${project.companyName})`
+                      : project.name
+                    : "-";
+
+                  return (
+                    <TableRow key={entry.id}>
+                      <TableCell className="font-medium">
+                        {formatDate(entry.date)}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {projectName}
+                      </TableCell>
+                      <TableCell>{formatTime(entry.startTime)}</TableCell>
+                      <TableCell>{formatTime(entry.endTime)}</TableCell>
+                      <TableCell>{entry.totalHours} hrs</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEdit(entry)}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteClick(entry)}
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
             {totalPages > 1 && (
@@ -425,6 +584,67 @@ export function ScheduleList() {
           </>
         )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Schedule Entry</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete the schedule entry for{" "}
+              <span className="font-semibold">
+                {entryToDelete ? formatDate(entryToDelete.date) : ""}
+              </span>
+              ? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Field>
+              <FieldLabel htmlFor="delete-confirm">
+                Type <span className="font-mono font-semibold">confirm</span> to
+                delete:
+              </FieldLabel>
+              <Input
+                id="delete-confirm"
+                value={deleteConfirmation}
+                onChange={(e) => setDeleteConfirmation(e.target.value)}
+                placeholder="confirm"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (
+                    e.key === "Enter" &&
+                    deleteConfirmation.toLowerCase() === "confirm"
+                  ) {
+                    handleDeleteConfirm();
+                  }
+                }}
+              />
+            </Field>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDeleteDialogOpen(false);
+                setEntryToDelete(null);
+                setDeleteConfirmation("");
+              }}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+              disabled={
+                deleteConfirmation.toLowerCase() !== "confirm" || isDeleting
+              }
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

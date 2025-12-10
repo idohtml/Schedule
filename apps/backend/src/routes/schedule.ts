@@ -106,11 +106,12 @@ export const scheduleRoutes = betterAuth.group("/api/schedule", (app) =>
           return status(401);
         }
 
-        const { date, startTime, endTime, notes } = body as {
+        const { date, startTime, endTime, notes, projectId } = body as {
           date: string;
           startTime: string;
           endTime: string;
           notes?: string;
+          projectId?: string | null;
         };
 
         if (!date || !startTime || !endTime) {
@@ -127,6 +128,7 @@ export const scheduleRoutes = betterAuth.group("/api/schedule", (app) =>
           .values({
             id,
             userId: user.id,
+            projectId: projectId || null,
             date: new Date(date),
             startTime,
             endTime,
@@ -153,11 +155,12 @@ export const scheduleRoutes = betterAuth.group("/api/schedule", (app) =>
         }
 
         const { id } = params;
-        const { date, startTime, endTime, notes } = body as {
+        const { date, startTime, endTime, notes, projectId } = body as {
           date?: string;
           startTime?: string;
           endTime?: string;
           notes?: string;
+          projectId?: string | null;
         };
 
         // Check if schedule exists and belongs to user
@@ -179,6 +182,7 @@ export const scheduleRoutes = betterAuth.group("/api/schedule", (app) =>
           endTime?: string;
           totalHours?: string;
           notes?: string | null;
+          projectId?: string | null;
           updatedAt: Date;
         } = {
           updatedAt: new Date(),
@@ -201,6 +205,10 @@ export const scheduleRoutes = betterAuth.group("/api/schedule", (app) =>
 
         if (notes !== undefined) {
           updateData.notes = notes || null;
+        }
+
+        if (projectId !== undefined) {
+          updateData.projectId = projectId || null;
         }
 
         const updatedSchedule = await db
