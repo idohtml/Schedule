@@ -13,6 +13,7 @@ import { Route as SignUpRouteRouteImport } from './routes/sign-up/route'
 import { Route as LoginRouteRouteImport } from './routes/login/route'
 import { Route as dashboardRouteRouteImport } from './routes/(dashboard)/route'
 import { Route as dashboardIndexRouteImport } from './routes/(dashboard)/index'
+import { Route as dashboardSettingsRouteRouteImport } from './routes/(dashboard)/settings/route'
 import { Route as dashboardProjectsRouteRouteImport } from './routes/(dashboard)/projects/route'
 import { Route as dashboardProfileRouteRouteImport } from './routes/(dashboard)/profile/route'
 
@@ -35,6 +36,11 @@ const dashboardIndexRoute = dashboardIndexRouteImport.update({
   path: '/',
   getParentRoute: () => dashboardRouteRoute,
 } as any)
+const dashboardSettingsRouteRoute = dashboardSettingsRouteRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => dashboardRouteRoute,
+} as any)
 const dashboardProjectsRouteRoute = dashboardProjectsRouteRouteImport.update({
   id: '/projects',
   path: '/projects',
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/sign-up': typeof SignUpRouteRoute
   '/profile': typeof dashboardProfileRouteRoute
   '/projects': typeof dashboardProjectsRouteRoute
+  '/settings': typeof dashboardSettingsRouteRoute
   '/': typeof dashboardIndexRoute
 }
 export interface FileRoutesByTo {
@@ -58,6 +65,7 @@ export interface FileRoutesByTo {
   '/sign-up': typeof SignUpRouteRoute
   '/profile': typeof dashboardProfileRouteRoute
   '/projects': typeof dashboardProjectsRouteRoute
+  '/settings': typeof dashboardSettingsRouteRoute
   '/': typeof dashboardIndexRoute
 }
 export interface FileRoutesById {
@@ -67,13 +75,20 @@ export interface FileRoutesById {
   '/sign-up': typeof SignUpRouteRoute
   '/(dashboard)/profile': typeof dashboardProfileRouteRoute
   '/(dashboard)/projects': typeof dashboardProjectsRouteRoute
+  '/(dashboard)/settings': typeof dashboardSettingsRouteRoute
   '/(dashboard)/': typeof dashboardIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/login' | '/sign-up' | '/profile' | '/projects' | '/'
+  fullPaths:
+    | '/login'
+    | '/sign-up'
+    | '/profile'
+    | '/projects'
+    | '/settings'
+    | '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/sign-up' | '/profile' | '/projects' | '/'
+  to: '/login' | '/sign-up' | '/profile' | '/projects' | '/settings' | '/'
   id:
     | '__root__'
     | '/(dashboard)'
@@ -81,6 +96,7 @@ export interface FileRouteTypes {
     | '/sign-up'
     | '/(dashboard)/profile'
     | '/(dashboard)/projects'
+    | '/(dashboard)/settings'
     | '/(dashboard)/'
   fileRoutesById: FileRoutesById
 }
@@ -120,6 +136,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof dashboardIndexRouteImport
       parentRoute: typeof dashboardRouteRoute
     }
+    '/(dashboard)/settings': {
+      id: '/(dashboard)/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof dashboardSettingsRouteRouteImport
+      parentRoute: typeof dashboardRouteRoute
+    }
     '/(dashboard)/projects': {
       id: '/(dashboard)/projects'
       path: '/projects'
@@ -140,12 +163,14 @@ declare module '@tanstack/react-router' {
 interface dashboardRouteRouteChildren {
   dashboardProfileRouteRoute: typeof dashboardProfileRouteRoute
   dashboardProjectsRouteRoute: typeof dashboardProjectsRouteRoute
+  dashboardSettingsRouteRoute: typeof dashboardSettingsRouteRoute
   dashboardIndexRoute: typeof dashboardIndexRoute
 }
 
 const dashboardRouteRouteChildren: dashboardRouteRouteChildren = {
   dashboardProfileRouteRoute: dashboardProfileRouteRoute,
   dashboardProjectsRouteRoute: dashboardProjectsRouteRoute,
+  dashboardSettingsRouteRoute: dashboardSettingsRouteRoute,
   dashboardIndexRoute: dashboardIndexRoute,
 }
 

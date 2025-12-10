@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect, useMemo } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 import type { ScheduleEntry } from "@/types";
@@ -20,9 +18,7 @@ import {
 import type { ChartConfig } from "@/components/ui/chart";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
-
-const HOURLY_RATE = 147; // SEK per hour before taxes
-const TAX_RATE = 0.3; // 30% tax rate
+import { useSettings } from "@/hooks/use-settings";
 
 type ViewType = "daily" | "weekly" | "monthly";
 
@@ -38,6 +34,7 @@ interface EarningsWidgetProps {
 }
 
 export function EarningsWidget({ refreshKey }: EarningsWidgetProps) {
+  const { settings } = useSettings();
   const [schedules, setSchedules] = useState<ScheduleEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [viewType, setViewType] = useState<ViewType>("daily");
@@ -113,7 +110,7 @@ export function EarningsWidget({ refreshKey }: EarningsWidgetProps) {
           return sum + parseFloat(entry.totalHours);
         }, 0);
 
-        const earnings = totalHours * HOURLY_RATE;
+        const earnings = totalHours * settings.hourlyRate;
 
         days.push({
           period: label,
@@ -145,7 +142,7 @@ export function EarningsWidget({ refreshKey }: EarningsWidgetProps) {
           return sum + parseFloat(entry.totalHours);
         }, 0);
 
-        const earnings = totalHours * HOURLY_RATE;
+        const earnings = totalHours * settings.hourlyRate;
 
         weeks.push({
           period: label,
@@ -180,7 +177,7 @@ export function EarningsWidget({ refreshKey }: EarningsWidgetProps) {
           return sum + parseFloat(entry.totalHours);
         }, 0);
 
-        const earnings = totalHours * HOURLY_RATE;
+        const earnings = totalHours * settings.hourlyRate;
 
         months.push({
           period: label,
@@ -189,16 +186,16 @@ export function EarningsWidget({ refreshKey }: EarningsWidgetProps) {
       }
       return months;
     }
-  }, [schedules, viewType]);
+  }, [schedules, viewType, settings.hourlyRate]);
 
   // Calculate total earnings for the current period (today, this week, or this month)
   const totalEarnings = useMemo(() => {
-    return calculateTotalEarnings(schedules, viewType, HOURLY_RATE);
-  }, [schedules, viewType]);
+    return calculateTotalEarnings(schedules, viewType, settings.hourlyRate);
+  }, [schedules, viewType, settings.hourlyRate]);
 
   const totalTaxes = useMemo(() => {
-    return totalEarnings * TAX_RATE;
-  }, [totalEarnings]);
+    return totalEarnings * settings.taxRate;
+  }, [totalEarnings, settings.taxRate]);
 
   const afterTaxEarnings = useMemo(() => {
     return totalEarnings - totalTaxes;
@@ -228,7 +225,7 @@ export function EarningsWidget({ refreshKey }: EarningsWidgetProps) {
           <div>
             <CardTitle>Earnings</CardTitle>
             <CardDescription>
-              {getDescription()} - {HOURLY_RATE} SEK/hour
+              {getDescription()} - {settings.hourlyRate} SEK/hour
             </CardDescription>
           </div>
           <ButtonGroup>

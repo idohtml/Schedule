@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
@@ -21,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { ChartContainer } from "@/components/ui/chart";
 import type { ChartConfig } from "@/components/ui/chart";
 import type { ScheduleEntry } from "@/types";
+import { useSettings } from "@/hooks/use-settings";
 
 const chartConfig = {
   hours: {
@@ -29,13 +28,12 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-const MONTHLY_GOAL_HOURS = 160; // Target hours per month
-
 interface HoursWidgetProps {
   refreshKey?: number;
 }
 
 export function HoursWidget({ refreshKey }: HoursWidgetProps) {
+  const { settings } = useSettings();
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
   const [totalHours, setTotalHours] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -194,7 +192,7 @@ export function HoursWidget({ refreshKey }: HoursWidgetProps) {
               dataKey="hours"
               background
               cornerRadius={10}
-              max={MONTHLY_GOAL_HOURS}
+              max={settings.monthlyGoalHours}
             />
             <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
               <Label
@@ -234,7 +232,7 @@ export function HoursWidget({ refreshKey }: HoursWidgetProps) {
         <div className="flex items-center justify-between w-full text-sm">
           <span className="text-muted-foreground">Goal Progress</span>
           <span className="font-semibold tabular-nums">
-            {((totalHours / MONTHLY_GOAL_HOURS) * 100).toFixed(1)}%
+            {((totalHours / settings.monthlyGoalHours) * 100).toFixed(1)}%
           </span>
         </div>
         <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
@@ -242,7 +240,7 @@ export function HoursWidget({ refreshKey }: HoursWidgetProps) {
             className="h-full transition-all duration-300 rounded-full"
             style={{
               width: `${Math.min(
-                (totalHours / MONTHLY_GOAL_HOURS) * 100,
+                (totalHours / settings.monthlyGoalHours) * 100,
                 100
               )}%`,
               backgroundColor: "oklch(var(--chart-1))",
@@ -251,11 +249,13 @@ export function HoursWidget({ refreshKey }: HoursWidgetProps) {
         </div>
         <div className="flex items-center justify-between w-full text-xs text-muted-foreground">
           <span>
-            {totalHours >= MONTHLY_GOAL_HOURS
+            {totalHours >= settings.monthlyGoalHours
               ? "Goal reached!"
-              : `${(MONTHLY_GOAL_HOURS - totalHours).toFixed(1)}h remaining`}
+              : `${(settings.monthlyGoalHours - totalHours).toFixed(
+                  1
+                )}h remaining`}
           </span>
-          <span>{MONTHLY_GOAL_HOURS}h target</span>
+          <span>{settings.monthlyGoalHours}h target</span>
         </div>
       </CardFooter>
     </Card>
