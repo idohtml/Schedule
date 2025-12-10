@@ -1,4 +1,4 @@
-import { Calendar, Home, User, FolderKanban, Settings } from "lucide-react";
+import { Home, User, FolderKanban, Settings } from "lucide-react";
 
 import {
   Sidebar,
@@ -26,7 +26,11 @@ export function AppSidebar() {
             <SidebarMenuButton size="lg" asChild>
               <Link to="/">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <Calendar className="size-4" />
+                  <img
+                    src="/schedule.logo.svg"
+                    alt="Schedule Logo"
+                    className="w-full h-full object-cover rounded-lg"
+                  />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">Schedule</span>
