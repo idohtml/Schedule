@@ -13,6 +13,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -229,6 +230,34 @@ export function HoursWidget({ refreshKey }: HoursWidgetProps) {
           </RadialBarChart>
         </ChartContainer>
       </CardContent>
+      <CardFooter className="flex flex-col gap-2 pt-4">
+        <div className="flex items-center justify-between w-full text-sm">
+          <span className="text-muted-foreground">Goal Progress</span>
+          <span className="font-semibold tabular-nums">
+            {((totalHours / MONTHLY_GOAL_HOURS) * 100).toFixed(1)}%
+          </span>
+        </div>
+        <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+          <div
+            className="h-full transition-all duration-300 rounded-full"
+            style={{
+              width: `${Math.min(
+                (totalHours / MONTHLY_GOAL_HOURS) * 100,
+                100
+              )}%`,
+              backgroundColor: "oklch(var(--chart-1))",
+            }}
+          />
+        </div>
+        <div className="flex items-center justify-between w-full text-xs text-muted-foreground">
+          <span>
+            {totalHours >= MONTHLY_GOAL_HOURS
+              ? "Goal reached!"
+              : `${(MONTHLY_GOAL_HOURS - totalHours).toFixed(1)}h remaining`}
+          </span>
+          <span>{MONTHLY_GOAL_HOURS}h target</span>
+        </div>
+      </CardFooter>
     </Card>
   );
 }
