@@ -27,13 +27,13 @@ type ViewType = "daily" | "weekly" | "monthly";
  * Calculate total earnings for the current period based on view type
  * @param schedules - Array of schedule entries
  * @param viewType - The view type (daily, weekly, or monthly)
- * @param hourlyRate - Hourly rate in SEK
+ * @param projectRates - Map of projectId to hourly rate, or default hourly rate number
  * @returns Total earnings for the current period
  */
 export function calculateTotalEarnings(
   schedules: ScheduleEntry[],
   viewType: ViewType,
-  hourlyRate: number
+  projectRates: Map<string | null, number> | number
 ): number {
   const now = new Date();
   let startDate: Date;
@@ -82,8 +82,21 @@ export function calculateTotalEarnings(
     return entryDateOnly >= startTime && entryDateOnly <= endTime;
   });
 
-  const totalHours = filteredSchedules.reduce((sum, entry) => {
-    return sum + parseFloat(entry.totalHours);
+  // Calculate earnings using project-specific rates
+  const totalEarnings = filteredSchedules.reduce((sum, entry) => {
+    const hours = parseFloat(entry.totalHours);
+    let rate: number;
+
+    if (typeof projectRates === "number") {
+      // Fallback: use single rate for all entries
+      rate = projectRates;
+    } else {
+      // Use project-specific rate or fallback to default
+      rate = projectRates.get(entry.projectId) || projectRates.get(null) || 0;
+    }
+
+    return sum + hours * rate;
   }, 0);
-  return totalHours * hourlyRate;
+
+  return totalEarnings;
 }

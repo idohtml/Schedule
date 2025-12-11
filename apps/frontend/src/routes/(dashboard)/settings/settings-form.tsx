@@ -167,12 +167,15 @@ export default function SettingsForm() {
                   Financial Settings
                 </h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Configure your hourly rate and tax information
+                  Configure your default hourly rate and tax information. Set
+                  project-specific rates in the Projects section.
                 </p>
               </div>
 
               <Field>
-                <FieldLabel htmlFor="hourlyRate">Hourly Rate (SEK)</FieldLabel>
+                <FieldLabel htmlFor="hourlyRate">
+                  Default Hourly Rate (SEK)
+                </FieldLabel>
                 <Input
                   id="hourlyRate"
                   type="number"
@@ -186,7 +189,8 @@ export default function SettingsForm() {
                   required
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Your hourly rate in Swedish Krona
+                  Default hourly rate used for projects without a specific rate.
+                  Set project-specific rates in the Projects section.
                 </p>
               </Field>
 

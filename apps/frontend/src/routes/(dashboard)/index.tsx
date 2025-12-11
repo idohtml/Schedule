@@ -8,7 +8,7 @@ import { HoursWidget } from "@/components/dashboard/hours-widget";
 import { HoursWidgetSkeleton } from "@/components/dashboard/hours-widget-skeleton";
 import { ProjectHoursWidget } from "@/components/dashboard/project-hours-widget";
 import { ProjectHoursWidgetSkeleton } from "@/components/dashboard/project-hours-widget-skeleton";
-import { useRefreshKey } from "./route";
+import { useRefreshKey } from "@/hooks/use-refresh-key";
 
 export const Route = createFileRoute("/(dashboard)/")({
   component: DashboardHome,

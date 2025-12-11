@@ -33,15 +33,41 @@ interface EarningsWidgetProps {
   refreshKey?: number;
 }
 
+interface Project {
+  id: string;
+  hourlyRate?: string | null;
+}
+
 export function EarningsWidget({ refreshKey }: EarningsWidgetProps) {
   const { settings } = useSettings();
   const [schedules, setSchedules] = useState<ScheduleEntry[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [viewType, setViewType] = useState<ViewType>("daily");
 
   useEffect(() => {
     fetchSchedules();
+    fetchProjects();
   }, [viewType, refreshKey]);
+
+  const fetchProjects = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/api/project", {
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch projects");
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        setProjects(result.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+    }
+  };
 
   const fetchSchedules = async () => {
     try {
@@ -84,8 +110,38 @@ export function EarningsWidget({ refreshKey }: EarningsWidgetProps) {
     }
   };
 
+  // Create a map of projectId -> hourlyRate, with fallback to default rate
+  const projectRatesMap = useMemo(() => {
+    const map = new Map<string | null, number>();
+    const defaultRate = settings.hourlyRate;
+
+    // Set default rate for entries without a project
+    map.set(null, defaultRate);
+
+    // Set project-specific rates
+    projects.forEach((project) => {
+      if (project.hourlyRate) {
+        map.set(project.id, parseFloat(project.hourlyRate));
+      } else {
+        // Use default rate if project doesn't have one
+        map.set(project.id, defaultRate);
+      }
+    });
+
+    return map;
+  }, [projects, settings.hourlyRate]);
+
   // Group schedules by period and calculate earnings
   const chartData = useMemo(() => {
+    const calculateEarnings = (entries: ScheduleEntry[]) => {
+      return entries.reduce((sum, entry) => {
+        const hours = parseFloat(entry.totalHours);
+        const rate =
+          projectRatesMap.get(entry.projectId) || settings.hourlyRate;
+        return sum + hours * rate;
+      }, 0);
+    };
+
     if (viewType === "daily") {
       // Get last 7 days
       const days = [];
@@ -105,12 +161,7 @@ export function EarningsWidget({ refreshKey }: EarningsWidgetProps) {
           return entryDate.getTime() === date.getTime();
         });
 
-        // Calculate total hours and earnings for this day
-        const totalHours = dayEntries.reduce((sum, entry) => {
-          return sum + parseFloat(entry.totalHours);
-        }, 0);
-
-        const earnings = totalHours * settings.hourlyRate;
+        const earnings = calculateEarnings(dayEntries);
 
         days.push({
           period: label,
@@ -137,12 +188,7 @@ export function EarningsWidget({ refreshKey }: EarningsWidgetProps) {
           return entryDate >= weekStart && entryDate <= weekEnd;
         });
 
-        // Calculate total hours and earnings for this week
-        const totalHours = weekEntries.reduce((sum, entry) => {
-          return sum + parseFloat(entry.totalHours);
-        }, 0);
-
-        const earnings = totalHours * settings.hourlyRate;
+        const earnings = calculateEarnings(weekEntries);
 
         weeks.push({
           period: label,
@@ -172,12 +218,7 @@ export function EarningsWidget({ refreshKey }: EarningsWidgetProps) {
           return entryDate >= month && entryDate <= monthEnd;
         });
 
-        // Calculate total hours and earnings for this month
-        const totalHours = monthEntries.reduce((sum, entry) => {
-          return sum + parseFloat(entry.totalHours);
-        }, 0);
-
-        const earnings = totalHours * settings.hourlyRate;
+        const earnings = calculateEarnings(monthEntries);
 
         months.push({
           period: label,
@@ -186,12 +227,12 @@ export function EarningsWidget({ refreshKey }: EarningsWidgetProps) {
       }
       return months;
     }
-  }, [schedules, viewType, settings.hourlyRate]);
+  }, [schedules, viewType, projectRatesMap, settings.hourlyRate]);
 
   // Calculate total earnings for the current period (today, this week, or this month)
   const totalEarnings = useMemo(() => {
-    return calculateTotalEarnings(schedules, viewType, settings.hourlyRate);
-  }, [schedules, viewType, settings.hourlyRate]);
+    return calculateTotalEarnings(schedules, viewType, projectRatesMap);
+  }, [schedules, viewType, projectRatesMap]);
 
   const totalTaxes = useMemo(() => {
     return totalEarnings * settings.taxRate;
@@ -225,7 +266,7 @@ export function EarningsWidget({ refreshKey }: EarningsWidgetProps) {
           <div>
             <CardTitle>Earnings</CardTitle>
             <CardDescription>
-              {getDescription()} - {settings.hourlyRate} SEK/hour
+              {getDescription()} - Project-specific rates
             </CardDescription>
           </div>
           <ButtonGroup>

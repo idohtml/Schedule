@@ -26,11 +26,9 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState, useMemo, createContext, useContext } from "react";
 
-const RefreshKeyContext = createContext<{ refreshKey: number }>({
+export const RefreshKeyContext = createContext<{ refreshKey: number }>({
   refreshKey: 0,
 });
-
-export const useRefreshKey = () => useContext(RefreshKeyContext);
 
 export const Route = createFileRoute("/(dashboard)")({
   component: DashboardLayout,

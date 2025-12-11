@@ -1,4 +1,5 @@
-import { createFileRoute, useRouteContext } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { useRefreshKey } from "@/hooks/use-refresh-key";
 import { useState, useEffect } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,6 +38,7 @@ interface Project {
   name: string;
   companyName?: string | null;
   description?: string | null;
+  hourlyRate?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -46,7 +48,7 @@ export const Route = createFileRoute("/(dashboard)/projects")({
 });
 
 function ProjectsPage() {
-  const { refreshKey } = useRouteContext({ from: "/(dashboard)" });
+  const { refreshKey } = useRefreshKey();
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -60,6 +62,7 @@ function ProjectsPage() {
     name: "",
     companyName: "",
     description: "",
+    hourlyRate: "",
   });
 
   useEffect(() => {
@@ -94,6 +97,7 @@ function ProjectsPage() {
       name: "",
       companyName: "",
       description: "",
+      hourlyRate: "",
     });
     setIsDrawerOpen(true);
   };
@@ -104,6 +108,7 @@ function ProjectsPage() {
       name: project.name,
       companyName: project.companyName || "",
       description: project.description || "",
+      hourlyRate: project.hourlyRate || "",
     });
     setIsDrawerOpen(true);
   };
@@ -169,6 +174,9 @@ function ProjectsPage() {
           name: formData.name,
           companyName: formData.companyName || null,
           description: formData.description || null,
+          hourlyRate: formData.hourlyRate
+            ? parseFloat(formData.hourlyRate)
+            : null,
         }),
       });
 
@@ -184,6 +192,7 @@ function ProjectsPage() {
         name: "",
         companyName: "",
         description: "",
+        hourlyRate: "",
       });
       setEditingProject(null);
       setIsDrawerOpen(false);
@@ -306,6 +315,29 @@ function ProjectsPage() {
                           placeholder="Brief project description"
                         />
                       </Field>
+                      <Field>
+                        <FieldLabel htmlFor="hourlyRate">
+                          Hourly Rate (SEK) (Optional)
+                        </FieldLabel>
+                        <Input
+                          id="hourlyRate"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={formData.hourlyRate}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              hourlyRate: e.target.value,
+                            })
+                          }
+                          placeholder="e.g., 1000"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Hourly rate for this project. Used for earnings
+                          calculations.
+                        </p>
+                      </Field>
                     </FieldGroup>
                   </div>
                   <DrawerFooter>
@@ -328,6 +360,7 @@ function ProjectsPage() {
                             name: "",
                             companyName: "",
                             description: "",
+                            hourlyRate: "",
                           });
                         }}
                       >
@@ -352,6 +385,7 @@ function ProjectsPage() {
                   <TableHead>Project Name</TableHead>
                   <TableHead>Company</TableHead>
                   <TableHead>Description</TableHead>
+                  <TableHead>Hourly Rate</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -367,6 +401,11 @@ function ProjectsPage() {
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {project.description || "-"}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {project.hourlyRate
+                        ? `${parseFloat(project.hourlyRate).toFixed(2)} SEK`
+                        : "-"}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {formatDate(project.createdAt)}

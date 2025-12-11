@@ -1,6 +1,9 @@
 import { betterAuth } from "../middleware/auth.js";
 import { db } from "../db/index.js";
-import { project as projectTable, schedule as scheduleTable } from "../db/schema/index.js";
+import {
+  project as projectTable,
+  schedule as scheduleTable,
+} from "../db/schema/index.js";
 import { eq, and, sql, gte } from "drizzle-orm";
 import { randomBytes } from "crypto";
 
@@ -43,9 +46,7 @@ export const projectRoutes = betterAuth.group("/api/project", (app) =>
         const project = await db
           .select()
           .from(projectTable)
-          .where(
-            and(eq(projectTable.id, id), eq(projectTable.userId, user.id))
-          )
+          .where(and(eq(projectTable.id, id), eq(projectTable.userId, user.id)))
           .limit(1);
 
         if (project.length === 0) {
@@ -87,10 +88,11 @@ export const projectRoutes = betterAuth.group("/api/project", (app) =>
           return status(401);
         }
 
-        const { name, companyName, description } = body as {
+        const { name, companyName, description, hourlyRate } = body as {
           name: string;
           companyName?: string;
           description?: string;
+          hourlyRate?: number | string;
         };
 
         if (!name) {
@@ -109,6 +111,7 @@ export const projectRoutes = betterAuth.group("/api/project", (app) =>
             name,
             companyName: companyName || null,
             description: description || null,
+            hourlyRate: hourlyRate ? hourlyRate.toString() : null,
           })
           .returning();
 
@@ -130,19 +133,18 @@ export const projectRoutes = betterAuth.group("/api/project", (app) =>
         }
 
         const { id } = params;
-        const { name, companyName, description } = body as {
+        const { name, companyName, description, hourlyRate } = body as {
           name?: string;
           companyName?: string;
           description?: string;
+          hourlyRate?: number | string | null;
         };
 
         // Check if project exists and belongs to user
         const existingProject = await db
           .select()
           .from(projectTable)
-          .where(
-            and(eq(projectTable.id, id), eq(projectTable.userId, user.id))
-          )
+          .where(and(eq(projectTable.id, id), eq(projectTable.userId, user.id)))
           .limit(1);
 
         if (existingProject.length === 0) {
@@ -153,6 +155,7 @@ export const projectRoutes = betterAuth.group("/api/project", (app) =>
           name?: string;
           companyName?: string | null;
           description?: string | null;
+          hourlyRate?: string | null;
           updatedAt: Date;
         } = {
           updatedAt: new Date(),
@@ -168,6 +171,10 @@ export const projectRoutes = betterAuth.group("/api/project", (app) =>
 
         if (description !== undefined) {
           updateData.description = description || null;
+        }
+
+        if (hourlyRate !== undefined) {
+          updateData.hourlyRate = hourlyRate ? hourlyRate.toString() : null;
         }
 
         const updatedProject = await db
@@ -199,9 +206,7 @@ export const projectRoutes = betterAuth.group("/api/project", (app) =>
         const existingProject = await db
           .select()
           .from(projectTable)
-          .where(
-            and(eq(projectTable.id, id), eq(projectTable.userId, user.id))
-          )
+          .where(and(eq(projectTable.id, id), eq(projectTable.userId, user.id)))
           .limit(1);
 
         if (existingProject.length === 0) {
@@ -234,9 +239,7 @@ export const projectRoutes = betterAuth.group("/api/project", (app) =>
         const existingProject = await db
           .select()
           .from(projectTable)
-          .where(
-            and(eq(projectTable.id, id), eq(projectTable.userId, user.id))
-          )
+          .where(and(eq(projectTable.id, id), eq(projectTable.userId, user.id)))
           .limit(1);
 
         if (existingProject.length === 0) {
@@ -283,4 +286,3 @@ export const projectRoutes = betterAuth.group("/api/project", (app) =>
       }
     )
 );
-

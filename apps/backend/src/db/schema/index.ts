@@ -111,6 +111,7 @@ export const project = pgTable(
     name: text("name").notNull(),
     companyName: text("company_name"),
     description: text("description"),
+    hourlyRate: numeric("hourly_rate", { precision: 10, scale: 2 }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
