@@ -4,7 +4,7 @@ import {
   project as projectTable,
   schedule as scheduleTable,
 } from "../db/schema/index.js";
-import { eq, and, sql, gte } from "drizzle-orm";
+import { eq, and, sql, gte, desc } from "drizzle-orm";
 import { randomBytes } from "crypto";
 
 // Extend from the middleware to get auth macro types
@@ -67,12 +67,25 @@ export const projectRoutes = betterAuth.group("/api/project", (app) =>
             )
           );
 
+        // Get all schedule entries for this project
+        const schedules = await db
+          .select()
+          .from(scheduleTable)
+          .where(
+            and(
+              eq(scheduleTable.userId, user.id),
+              eq(scheduleTable.projectId, id)
+            )
+          )
+          .orderBy(desc(scheduleTable.date), desc(scheduleTable.startTime));
+
         return {
           success: true,
           data: {
             ...project[0],
             totalHours: totals[0]?.totalHours || "0.00",
             entryCount: totals[0]?.entryCount || 0,
+            schedules,
           },
         };
       },

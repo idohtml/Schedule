@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useRefreshKey } from "@/hooks/use-refresh-key";
 import { useState, useEffect } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
@@ -43,11 +43,12 @@ interface Project {
   updatedAt: string;
 }
 
-export const Route = createFileRoute("/(dashboard)/projects")({
+export const Route = createFileRoute("/(dashboard)/projects/")({
   component: ProjectsPage,
 });
 
 function ProjectsPage() {
+  const navigate = useNavigate();
   const { refreshKey } = useRefreshKey();
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -394,7 +395,13 @@ function ProjectsPage() {
                 {projects.map((project) => (
                   <TableRow key={project.id}>
                     <TableCell className="font-medium">
-                      {project.name}
+                      <Link
+                        to="/projects/$projectId"
+                        params={{ projectId: project.id }}
+                        className="text-left hover:underline cursor-pointer"
+                      >
+                        {project.name}
+                      </Link>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {project.companyName || "-"}
