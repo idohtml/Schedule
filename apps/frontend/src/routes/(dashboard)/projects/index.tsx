@@ -1,17 +1,5 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useRefreshKey } from "@/hooks/use-refresh-key";
-import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -32,6 +20,18 @@ import {
 } from "@/components/ui/drawer";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useRefreshKey } from "@/hooks/use-refresh-key";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Pencil, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface Project {
   id: string;
@@ -48,7 +48,6 @@ export const Route = createFileRoute("/(dashboard)/projects/")({
 });
 
 function ProjectsPage() {
-  const navigate = useNavigate();
   const { refreshKey } = useRefreshKey();
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
