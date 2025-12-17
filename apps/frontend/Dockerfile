@@ -32,7 +32,7 @@ COPY --from=build /app/dist /usr/share/nginx/html
 
 # Copy nginx configuration (SPA routing + API proxy)
 RUN echo 'server { \
-    listen 80; \
+    listen 5173; \
     server_name _; \
     root /usr/share/nginx/html; \
     index index.html; \
@@ -56,7 +56,7 @@ RUN echo 'server { \
 }' > /etc/nginx/conf.d/default.conf
 
 # Expose port
-EXPOSE 80
+EXPOSE 5173
 
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]
