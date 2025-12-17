@@ -1,0 +1,72 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: schedule-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-schedule}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-schedule}
+      POSTGRES_DB: ${POSTGRES_DB:-schedule}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-schedule}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - schedule-network
+
+  # Backend API
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: schedule-backend
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-schedule}:${POSTGRES_PASSWORD:-schedule}@postgres:5432/${POSTGRES_DB:-schedule}
+      PORT: 3000
+      # Better Auth configuration
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-change-me-in-production}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+      # CORS origins (comma-separated, or leave empty to use defaults)
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:3000,http://localhost}
+    ports:
+      - "${BACKEND_PORT:-3000}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - schedule-network
+    restart: unless-stopped
+
+  # Frontend
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+      args:
+        # Set the API URL for build-time (use backend service name for internal communication)
+        # In production, you might want to use your actual domain
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
+    container_name: schedule-frontend
+    environment:
+      NODE_ENV: production
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    depends_on:
+      - backend
+    networks:
+      - schedule-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  schedule-network:
+    driver: bridge

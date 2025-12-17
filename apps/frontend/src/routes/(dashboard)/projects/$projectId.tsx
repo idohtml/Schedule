@@ -1,9 +1,5 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useRefreshKey } from "@/hooks/use-refresh-key";
-import { useState, useEffect } from "react";
-import { ArrowLeft, Calendar, Clock } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -12,6 +8,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useRefreshKey } from "@/hooks/use-refresh-key";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ArrowLeft, Calendar, Clock } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface Project {
   id: string;
@@ -96,15 +96,6 @@ function ProjectDetailPage() {
 
   const formatTime = (timeString: string) => {
     return timeString.slice(0, 5); // Format HH:MM
-  };
-
-  const formatDateTime = (dateString: string, timeString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
   };
 
   if (isLoading) {
